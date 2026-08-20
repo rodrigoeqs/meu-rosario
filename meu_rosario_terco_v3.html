@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#061b31">
+<title>Meu Rosário — Terço</title>
+<style>
+:root{
+  --bg:#061b31;--panel:#0b2944;--panel2:#0d3150;--gold:#e7bd62;
+  --blue:#65b9ff;--white:#f5f7fb;--muted:#9fb3c5;--bead:#183a54;
+  --done:#67b9f5;--line:#214763;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--white);
+font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif}
+body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.app{height:100%;display:flex;flex-direction:column;max-width:760px;margin:auto}
+header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:8px 16px 4px;flex:0 0 auto}
+.brand{font-family:Georgia,serif;font-size:25px;font-weight:700}.brand span{color:var(--gold)}
+.iconbtn{width:42px;height:42px;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--gold);font-size:20px}
+.top{display:flex;gap:10px;align-items:center;padding:0 14px 8px;flex:0 0 auto}
+.progress{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;position:relative;
+background:conic-gradient(var(--blue) var(--pct,0%),#23445d 0)}
+.progress:after{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--bg)}
+.progress b,.progress small{z-index:1}.progress b{font-size:17px}.progress small{position:absolute;margin-top:28px;font-size:9px;color:var(--muted)}
+select{min-width:0;flex:1;background:var(--panel);border:1px solid #3b5d75;border-radius:20px;color:var(--white);padding:12px 14px;font-size:14px}
+.info{text-align:center;padding:0 16px 4px;flex:0 0 auto}.info .day{font-size:12px;color:var(--blue);font-weight:700}.info .name{font-size:14px;margin-top:2px}
+.stage-wrap{position:relative;flex:1;min-height:0;margin:0 8px 4px;border-radius:24px;overflow:hidden}
+#stage{width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+#scene{transform-origin:0 0}
+.center-card{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(270px,48vw);
+background:rgba(13,45,73,.92);border:1px solid #28506d;border-radius:22px;padding:14px;text-align:center;
+pointer-events:none;box-shadow:0 10px 35px rgba(0,0,0,.25)}
+.current{color:var(--blue);font-size:12px;font-weight:700}.center-card h2{font-size:18px;margin:5px 0 4px}
+.center-card p{font-size:12px;line-height:1.35;color:var(--muted);margin:0}
+.legend{display:flex;justify-content:center;gap:10px;margin-top:9px;font-size:9px;color:var(--muted)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px;vertical-align:middle}
+.legend .done{background:var(--done)}.legend .now{border:2px solid var(--blue);box-shadow:0 0 7px var(--blue)}.legend .pending{background:var(--bead);border:1px solid #45677f}
+.bead-hit{fill:transparent;cursor:pointer}.bead{stroke-width:3}.small{fill:var(--bead);stroke:#4a6d84}.large{fill:url(#gold);stroke:#f5d982}
+.done .bead{fill:url(#done);stroke:#d7f0ff}.done .check{fill:#fff}
+.current .bead{stroke:var(--blue);filter:url(#glow)}.label{fill:var(--muted);font-size:16px;font-weight:700;text-anchor:middle}
+.decade-title{fill:var(--blue);font-size:17px;font-weight:700;text-anchor:middle}.decade-sub{fill:var(--white);font-size:12px;text-anchor:middle}
+.controls{display:flex;justify-content:space-between;gap:10px;padding:4px 14px 8px;flex:0 0 auto}
+.action{height:52px;flex:1;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--blue);font-weight:700;font-size:13px}
+.action.primary{background:var(--panel2)}.action:active{transform:scale(.98)}
+.zoom{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:7px;z-index:5}
+.zoom button{width:44px;height:44px;border:1px solid var(--line);border-radius:14px;background:rgba(11,41,68,.94);color:var(--white);font-size:22px}
+.zoom .reset{font-size:13px}.hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);font-size:9px;color:#718da3;pointer-events:none;white-space:nowrap}
+.finish{display:none;text-align:center;padding:7px;color:var(--gold);font-weight:700}.finish.show{display:block}
+@media(max-height:700px){header{height:56px}.top{padding-bottom:4px}.progress{width:54px;height:54px}.center-card{top:46%;padding:10px}.controls{padding-bottom:4px}.action{height:46px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="brand"><span>✣</span> Meu Rosário</div><button class="iconbtn" id="infoBtn" aria-label="Informações">ⓘ</button></header>
+<div class="top">
+  <div class="progress" id="progress"><b id="pct">0%</b><small>Concluído</small></div>
+  <select id="mystery"></select>
+</div>
+<div class="info"><div class="day" id="day"></div><div class="name" id="mysteryName"></div></div>
+
+<div class="stage-wrap">
+  <svg id="stage" viewBox="0 0 1000 1000" aria-label="Terço interativo">
+    <defs>
+      <radialGradient id="gold"><stop offset="0" stop-color="#fff1a6"/><stop offset=".55" stop-color="#e3b447"/><stop offset="1" stop-color="#8b5d16"/></radialGradient>
+      <linearGradient id="done" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#b9e5ff"/><stop offset="1" stop-color="#4a96ca"/></linearGradient>
+      <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <g id="scene">
+      <ellipse cx="500" cy="490" rx="390" ry="390" fill="none" stroke="#e7bd62" stroke-opacity=".22" stroke-width="3"/>
+      <g id="decadeLabels"></g>
+      <g id="beads"></g>
+      <g id="stem"></g>
+      <g id="crucifix"></g>
+    </g>
+  </svg>
+
+  <div class="center-card">
+    <div class="current" id="current">Você está começando</div>
+    <h2 id="currentTitle">Pai-Nosso inicial</h2>
+    <p id="currentDesc">Toque na conta correspondente depois de rezar.</p>
+    <div class="legend"><span><i class="done"></i>Rezada</span><span><i class="now"></i>Atual</span><span><i class="pending"></i>Não rezada</span></div>
+  </div>
+
+  <div class="zoom">
+    <button id="zoomIn" aria-label="Aumentar zoom">＋</button>
+    <button id="zoomOut" aria-label="Diminuir zoom">−</button>
+    <button id="zoomReset" class="reset" aria-label="Tamanho padrão">1×</button>
+  </div>
+  <div class="hint">Pinça para ampliar • arraste para deslocar</div>
+</div>
+
+<div class="finish" id="finish">🙏 Terço concluído — todas as 59 contas foram marcadas.</div>
+<div class="controls">
+  <button class="action" id="resetBtn">↶ Recomeçar</button>
+  <button class="action primary" id="nextBtn">Próxima oração →</button>
+</div>
+</div>
+
+<script>
+'use strict';
+
+const dayNames=["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
+const mysteries=[
+["Mistérios Gloriosos","Ressurreição • Ascensão • Pentecostes • Assunção • Coroação"],
+["Mistérios Gozosos","Anunciação • Visitação • Nascimento • Apresentação • Encontro no Templo"],
+["Mistérios Dolorosos","Agonia • Flagelação • Coroação de Espinhos • Calvário • Crucificação"],
+["Mistérios Gloriosos","Ressurreição • Ascensão • Pentecostes • Assunção • Coroação"],
+["Mistérios Luminosos","Batismo • Caná • Reino de Deus • Transfiguração • Eucaristia"],
+["Mistérios Dolorosos","Agonia • Flagelação • Coroação de Espinhos • Calvário • Crucificação"],
+["Mistérios Gozosos","Anunciação • Visitação • Nascimento • Apresentação • Encontro no Templo"]
+];
+
+// ESTRUTURA FÍSICA TRADICIONAL: 59 CONTAS.
+// 1 conta grande inicial + 3 contas pequenas + 5 grupos de (1 grande + 10 pequenas).
+const beads=[];
+beads.push({type:"large",kind:"opening",label:"Pai-Nosso inicial"});
+for(let i=1;i<=3;i++) beads.push({type:"small",kind:"opening",label:`${i}ª Ave-Maria inicial`});
+for(let d=1;d<=5;d++){
+  beads.push({type:"large",kind:"decade",decade:d,label:`Pai-Nosso — ${d}º Mistério`});
+  for(let a=1;a<=10;a++) beads.push({type:"small",kind:"decade",decade:d,ave:a,label:`${a}ª Ave-Maria — ${d}º Mistério`});
+}
+if(beads.length!==59) throw new Error("Estrutura inválida: o Terço deve ter 59 contas.");
+
+const key="meu_rosario_terco_v3";
+let state=JSON.parse(localStorage.getItem(key)||"null");
+if(!Array.isArray(state)||state.length!==59) state=Array(59).fill(false);
+
+const mystery=document.getElementById("mystery");
+mysteries.forEach((m,i)=>{const o=document.createElement("option");o.value=i;o.textContent=m[0]+" — "+(["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"][i]);mystery.appendChild(o)});
+mystery.value=new Date().getDay();
+
+const svgNS="http://www.w3.org/2000/svg";
+const beadsLayer=document.getElementById("beads");
+const labelsLayer=document.getElementById("decadeLabels");
+const stemLayer=document.getElementById("stem");
+const crucifixLayer=document.getElementById("crucifix");
+
+function el(name,attrs={}){
+  const n=document.createElementNS(svgNS,name);
+  for(const [k,v] of Object.entries(attrs)) n.setAttribute(k,v);
+  return n;
+}
+
+// 55 contas da parte circular: 5 contas grandes + 50 pequenas.
+// A primeira conta grande fica no ponto inferior da volta.
+function loopPosition(k){
+  const total=55;
+  const angle=(-90 + k*(360/total))*Math.PI/180;
+  const cx=500,cy=490,rx=390,ry=390;
+  return {x:cx+rx*Math.cos(angle),y:cy+ry*Math.sin(angle),angle};
+}
+
+const positions=[];
+for(let i=4;i<59;i++) positions.push(loopPosition(i-4));
+
+function buildScene(){
+  beadsLayer.innerHTML="";labelsLayer.innerHTML="";stemLayer.innerHTML="";crucifixLayer.innerHTML="";
+
+  // Etiquetas dos cinco mistérios, posicionadas junto às contas grandes.
+  for(let d=1;d<=5;d++){
+    const idx=4+(d-1)*11;
+    const p=positions[idx-4];
+    const label=el("text",{x:p.x,y:p.y-52,class:"decade-title"});
+    label.textContent=`${d}º Mistério`;
+    labelsLayer.appendChild(label);
+  }
+
+  // 55 contas circulares.
+  for(let j=0;j<55;j++){
+    const i=4+j, p=positions[j], item=beads[i];
+    const g=el("g",{class:"bead-group", "data-i":i});
+    const visible=el("circle",{cx:p.x,cy:p.y,r:item.type==="large"?18:13,class:"bead "+(item.type==="large"?"large":"small")});
+    const hit=el("circle",{cx:p.x,cy:p.y,r:item.type==="large"?39:35,class:"bead-hit"});
+    g.appendChild(visible);g.appendChild(hit);
+    hit.addEventListener("pointerup",e=>{e.stopPropagation();toggle(i)});
+    beadsLayer.appendChild(g);
+  }
+
+  // Haste: conta grande inicial + 3 Ave-Marias, saindo da parte inferior da volta.
+  const stemPoints=[
+    {x:500,y:900,r:18,type:"large",i:0},
+    {x:500,y:842,r:13,type:"small",i:1},
+    {x:500,y:790,r:13,type:"small",i:2},
+    {x:500,y:738,r:13,type:"small",i:3}
+  ];
+  const line=el("path",{d:"M500 930 L500 700",stroke:"#557489","stroke-width":"4","fill":"none","stroke-linecap":"round","opacity":".55"});
+  stemLayer.appendChild(line);
+  stemPoints.forEach(p=>{
+    const g=el("g",{class:"bead-group","data-i":p.i});
+    const visible=el("circle",{cx:p.x,cy:p.y,r:p.r,class:"bead "+(p.type==="large"?"large":"small")});
+    const hit=el("circle",{cx:p.x,cy:p.y,r:36,class:"bead-hit"});
+    g.appendChild(visible);g.appendChild(hit);hit.addEventListener("pointerup",e=>{e.stopPropagation();toggle(p.i)});
+    beadsLayer.appendChild(g);
+  });
+
+  // Crucifixo.
+  const cross=el("text",{x:500,y:975,"text-anchor":"middle",fill:"#e7bd62","font-size":"76","font-family":"Georgia,serif"});
+  cross.textContent="✝";
+  crucifixLayer.appendChild(cross);
+}
+
+function save(){localStorage.setItem(key,JSON.stringify(state))}
+function toggle(i){
+  if(i<0||i>=59)return;
+  state[i]=!state[i];save();render();
+  if(navigator.vibrate) navigator.vibrate(12);
+}
+function nextPrayer(){
+  const i=state.findIndex(v=>!v);
+  if(i>=0){state[i]=true;save();render();}
+}
+function resetAll(){
+  if(confirm("Recomeçar o Terço?")){state=Array(59).fill(false);save();render();}
+}
+function render(){
+  const day=new Date().getDay(), m=mysteries[+mystery.value];
+  document.getElementById("day").textContent=dayNames[day];
+  document.getElementById("mysteryName").textContent=m[0];
+  const done=state.filter(Boolean).length,p=done/59*100;
+  document.getElementById("pct").textContent=Math.round(p)+"%";
+  document.getElementById("progress").style.setProperty("--pct",p+"%");
+  document.getElementById("finish").classList.toggle("show",done===59);
+
+  const current=state.findIndex(v=>!v), ci=current<0?58:current;
+  document.getElementById("current").textContent=current<0?"Concluído":`Conta ${ci+1} de 59`;
+  document.getElementById("currentTitle").textContent=beads[ci].label;
+  document.getElementById("currentDesc").textContent=current<0?"Todas as contas foram marcadas.":"Toque na área da conta correspondente depois de rezar.";
+
+  document.querySelectorAll(".bead-group").forEach(g=>{
+    const i=+g.dataset.i;g.classList.toggle("done",!!state[i]);g.classList.toggle("current",i===current);
+    const vis=g.querySelector(".bead");
+    vis.classList.toggle("done",!!state[i]);vis.classList.toggle("current",i===current);
+  });
+}
+document.getElementById("nextBtn").addEventListener("click",nextPrayer);
+document.getElementById("resetBtn").addEventListener("click",resetAll);
+mystery.addEventListener("change",render);
+document.getElementById("infoBtn").addEventListener("click",()=>alert("Terço tradicional: 59 contas físicas. As orações como Glória ao Pai, Ó meu Jesus e Salve Rainha não criam contas extras; elas são rezadas entre/ao final das dezenas." ));
+
+// Zoom + pan/pinch no SVG.
+const stage=document.getElementById("stage"),scene=document.getElementById("scene");
+let scale=1, tx=0, ty=0, pointers=new Map(), startDist=0,startScale=1,startMid=null,startTx=0,startTy=0,dragging=false,lastX=0,lastY=0;
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function applyTransform(){scene.setAttribute("transform",`translate(${tx} ${ty}) scale(${scale})`)}
+function setZoom(z,cx=500,cy=500){
+  const old=scale;scale=clamp(z,.75,2.4);
+  tx=cx-(cx-tx)*(scale/old);ty=cy-(cy-ty)*(scale/old);applyTransform();
+}
+function resetZoom(){scale=1;tx=0;ty=0;applyTransform()}
+document.getElementById("zoomIn").onclick=()=>setZoom(scale+.2);
+document.getElementById("zoomOut").onclick=()=>setZoom(scale-.2);
+document.getElementById("zoomReset").onclick=resetZoom;
+
+stage.addEventListener("pointerdown",e=>{
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});stage.setPointerCapture(e.pointerId);
+  if(pointers.size===1){dragging=true;lastX=e.clientX;lastY=e.clientY}
+  if(pointers.size===2){
+    const a=[...pointers.values()];startDist=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+    startScale=scale;startMid={x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};startTx=tx;startTy=ty;dragging=false;
+  }
+});
+stage.addEventListener("pointermove",e=>{
+  if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pointers.size===2){
+    const a=[...pointers.values()];const dist=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+    const factor=dist/startDist;scale=clamp(startScale*factor,.75,2.4);applyTransform();
+  }else if(dragging&&scale>1){
+    const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;
+    tx+=dx*1.8;ty+=dy*1.8;applyTransform();
+  }
+});
+["pointerup","pointercancel","pointerleave"].forEach(type=>stage.addEventListener(type,e=>{pointers.delete(e.pointerId);if(pointers.size===0)dragging=false}));
+stage.addEventListener("wheel",e=>{e.preventDefault();setZoom(scale+(e.deltaY<0?.12:-.12))},{passive:false});
+
+buildScene();render();applyTransform();
+</script>
+</body>
+</html>
