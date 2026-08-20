@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#071b2f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Meu Rosário">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-192.png">
+<title>Meu Rosário</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#071b2f;color:#f7f8fb;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}button,select{font:inherit}
+.app{width:min(100%,620px);margin:auto;padding:12px 14px 24px}
+header{display:flex;justify-content:space-between;align-items:center}.brand{font:28px Georgia,serif}.brand b{color:#e5b957}.gear{font-size:24px;color:#e5b957}
+.top{display:flex;gap:10px;align-items:center;margin:11px 0}.progress{width:76px;height:76px;border-radius:50%;background:conic-gradient(#6bc0ff var(--p),#29445a 0);display:grid;place-items:center;position:relative}.progress:after{content:"";position:absolute;inset:7px;background:#071b2f;border-radius:50%}.progress strong,.progress span{z-index:1}.progress strong{font-size:19px}.progress span{position:absolute;margin-top:28px;font-size:8px;color:#6bc0ff}
+select{width:100%;padding:13px 15px;background:#0b2943;color:#fff;border:1px solid #4c6578;border-radius:25px}
+.day{text-align:center;color:#6bc0ff;font-weight:700;font-size:14px}.mystery{text-align:center;font-size:16px;margin-top:3px}
+.rosary{height:590px;position:relative;max-width:530px;margin:auto}
+.chain{position:absolute;left:8%;top:4%;width:84%;height:68%;border:2px solid #9a783c;border-radius:50%;box-shadow:0 0 0 3px #9a783c18;opacity:.85}
+.link{position:absolute;width:7px;height:7px;border:1px solid #b9954c;border-radius:50%;transform:translate(-50%,-50%);z-index:1}
+.bead{position:absolute;transform:translate(-50%,-50%);width:29px;height:29px;border-radius:50%;border:2px solid #577085;background:radial-gradient(circle at 30% 24%,#2c526c,#102d45 68%);box-shadow:0 3px 8px #0009;display:grid;place-items:center;color:white;font-size:12px;z-index:4;padding:0}
+.bead.pater{width:39px;height:39px;background:radial-gradient(circle at 31% 23%,#fff0a1,#dda12d 57%,#79500e);border-color:#f2d275;color:#3d2706}
+.bead.done{background:linear-gradient(#a9dcff,#4b95ca);border-color:#e4f5ff}.bead.current{box-shadow:0 0 0 3px #6bc0ff66,0 0 17px #6bc0ff}
+.label{position:absolute;z-index:2;color:#6bc0ff;font-size:10px;font-weight:700;transform:translate(-50%,-50%);text-align:center;width:80px}
+.center{position:absolute;left:50%;top:37%;transform:translate(-50%,-50%);width:205px;background:#0b2b46ee;border:1px solid #284b62;border-radius:22px;padding:14px;text-align:center;z-index:3}.center small{color:#6bc0ff}.center h2{font-size:18px;margin:6px 0}.center p{font-size:12px;color:#adbdca;line-height:1.35;margin:0}
+.medal{position:absolute;left:50%;top:73%;transform:translate(-50%,-50%);z-index:6;width:58px;height:58px;border-radius:50%;border:3px solid #e5b957;background:radial-gradient(circle,#ffe89a,#b87819 70%);display:grid;place-items:center;color:#70440b;font-size:28px;box-shadow:0 2px 12px #000a}
+.tail{position:absolute;left:50%;top:77%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:5}.tail .bead{position:static;transform:none}.cross{font-size:64px;line-height:.9;color:#e5b957;text-shadow:0 0 12px #e5b95755}
+.actions{display:flex;justify-content:space-between;margin-top:-2px}.action{width:112px;height:70px;border:1px solid #3d5a70;border-radius:23px;background:#0b2943;color:#6bc0ff;font-weight:700}.action span{display:block;font-size:24px}
+.finish{display:none;text-align:center;background:#0b2943;border:1px solid #31546b;border-radius:18px;padding:13px;margin-top:12px}.finish.show{display:block}.finish p{color:#adbdca;font-size:12px;margin:4px}
+.help{text-align:center;color:#adbdca;font-size:11px;line-height:1.4;background:#09263e;border:1px solid #25465d;border-radius:17px;padding:11px;margin-top:12px}
+</style>
+</head>
+<body><main class="app">
+<header><div class="brand"><b>♧</b> Meu Rosário</div><div class="gear">⚙︎</div></header>
+<div class="top"><div class="progress" id="progress"><strong id="pct">0%</strong><span>CONCLUÍDO</span></div><select id="mystery"></select></div>
+<div class="day" id="day"></div><div class="mystery" id="mysteryText"></div>
+
+<section class="rosary" id="rosary">
+ <div class="chain" id="chain"></div>
+ <div class="center"><small id="state">PRÓXIMA ORAÇÃO</small><h2 id="current">Pai-Nosso inicial</h2><p>Toque em cada conta depois de rezar. A conta azul indica que já foi marcada.</p></div>
+ <div class="medal">✦</div>
+ <div class="tail"><button class="bead pater" id="tailPater">P</button><button class="bead" id="tailAve"></button><div class="cross">✝</div></div>
+</section>
+<div class="actions"><button class="action" id="reset"><span>↶</span>Recomeçar</button><button class="action" id="next"><span>⏭</span>Próxima</button></div>
+<div class="finish" id="finish"><strong>🙏 Rosário concluído</strong><p>Todas as contas foram marcadas.</p></div>
+<div class="help">🟡 <b>dourada</b> = Pai-Nosso &nbsp; 🔵 <b>azul</b> = Ave-Maria rezada &nbsp; ⚫ <b>escura</b> = pendente</div>
+</main>
+<script>
+const days=["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
+const mysteries=[
+["Mistérios Gloriosos","Ressurreição • Ascensão • Pentecostes • Assunção • Coroação"],
+["Mistérios Gozosos","Anunciação • Visitação • Nascimento • Apresentação • Encontro no Templo"],
+["Mistérios Dolorosos","Agonia • Flagelação • Coroação de Espinhos • Calvário • Crucificação"],
+["Mistérios Gloriosos","Ressurreição • Ascensão • Pentecostes • Assunção • Coroação"],
+["Mistérios Luminosos","Batismo • Caná • Reino • Transfiguração • Eucaristia"],
+["Mistérios Dolorosos","Agonia • Flagelação • Coroação de Espinhos • Calvário • Crucificação"],
+["Mistérios Gozosos","Anunciação • Visitação • Nascimento • Apresentação • Encontro no Templo"]
+];
+// Contas que aparecem no cordão principal: 3 iniciais + 5 dezenas.
+const beads=[
+ {p:1,n:"Pai-Nosso inicial"},
+ {p:0,n:"1ª Ave-Maria inicial"},{p:0,n:"2ª Ave-Maria inicial"},{p:0,n:"3ª Ave-Maria inicial"},
+ ...Array.from({length:5},(_,d)=>[
+  {p:1,n:`Pai-Nosso — ${d+1}º Mistério`},
+  ...Array.from({length:10},(_,i)=>({p:0,n:`${i+1}ª Ave-Maria — ${d+1}º Mistério`}))
+ ]).flat()
+];
+let state=JSON.parse(localStorage.getItem("rosario_fisico_v4")||"null");
+if(!Array.isArray(state)||state.length!==beads.length)state=Array(beads.length).fill(false);
+const sel=document.getElementById("mystery");
+mysteries.forEach((m,i)=>{const o=document.createElement("option");o.value=i;o.textContent=m[0];sel.appendChild(o)});sel.value=new Date().getDay();
+
+function addLink(x,y){const e=document.createElement("div");e.className="link";e.style.left=x+"%";e.style.top=y+"%";document.getElementById("chain").appendChild(e)}
+function render(){
+ const r=document.getElementById("rosary");r.querySelectorAll(".ringbead,.label").forEach(e=>e.remove());document.getElementById("chain").innerHTML="";
+ const first=state.findIndex(v=>!v),done=state.filter(Boolean).length,p=done/beads.length*100;
+ document.getElementById("pct").textContent=Math.round(p)+"%";document.getElementById("progress").style.setProperty("--p",p+"%");
+ document.getElementById("day").textContent=days[+sel.value];document.getElementById("mysteryText").textContent=mysteries[+sel.value][0];
+
+ beads.forEach((b,i)=>{
+   const t=i/(beads.length-1)*Math.PI*2-Math.PI/2;
+   const x=50+41*Math.cos(t),y=39+34*Math.sin(t);
+   if(i<beads.length-1){const t2=(i+1)/(beads.length-1)*Math.PI*2-Math.PI/2;const x2=50+41*Math.cos(t2),y2=39+34*Math.sin(t2);addLink((x+x2)/2,(y+y2)/2)}
+   const el=document.createElement("button");el.className="bead ringbead"+(b.p?" pater":"")+(state[i]?" done":"")+(i===first?" current":"");
+   el.style.left=x+"%";el.style.top=y+"%";el.textContent=state[i]?"✓":"";el.setAttribute("aria-label",b.n);el.title=b.n;el.onclick=()=>toggle(i);r.appendChild(el);
+ });
+ // Identificação discreta dos cinco mistérios
+ for(let d=0;d<5;d++){
+   const idx=4+d*11+5,t=idx/(beads.length-1)*Math.PI*2-Math.PI/2;
+   const lab=document.createElement("div");lab.className="label";lab.style.left=(50+49*Math.cos(t))+"%";lab.style.top=(39+43*Math.sin(t))+"%";lab.textContent=(d+1)+"º Mistério";r.appendChild(lab);
+ }
+ const ci=first<0?beads.length-1:first;
+ document.getElementById("current").textContent=beads[ci].n;document.getElementById("state").textContent=first<0?"CONCLUÍDO":"PRÓXIMA ORAÇÃO";
+ document.getElementById("finish").classList.toggle("show",done===beads.length);
+}
+function toggle(i){state[i]=!state[i];localStorage.setItem("rosario_fisico_v4",JSON.stringify(state));render();navigator.vibrate?.(10)}
+function next(){const i=state.findIndex(v=>!v);if(i>=0){state[i]=true;localStorage.setItem("rosario_fisico_v4",JSON.stringify(state));render()}}
+document.getElementById("next").onclick=next;
+document.getElementById("reset").onclick=()=>{if(confirm("Recomeçar o Rosário?")){state=Array(beads.length).fill(false);localStorage.setItem("rosario_fisico_v4",JSON.stringify(state));render()}};
+sel.onchange=render;render();
+</script></body></html>
